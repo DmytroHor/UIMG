@@ -81,7 +81,8 @@ if ENVIRONMENT == 'local':
 else:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'ENGINE': 'django.db.backends.mysql',
             'NAME': os.environ.get('DATABASE_NAME', 'hola_pgsql'),
             'USER': os.environ.get('DATABASE_USER', 'hola_test'),
             'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'test'),
