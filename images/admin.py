@@ -9,6 +9,7 @@ class ImageAdmin(admin.ModelAdmin):
         'random_from', 'random_to',
     )
     readonly_fields = ('image_preview', 'result_image', 'result_image_preview', 'owner',)
+    list_filter = ('owner',)
 
     def save_model(self, request, obj, form, change):
         if not change:

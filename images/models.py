@@ -2,8 +2,9 @@ import os
 from functools import partial
 from io import BytesIO
 
+from django.core.exceptions import ValidationError
 from django.core.files import File
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -28,7 +29,7 @@ class Image(models.Model):
     )
     owner = models.ForeignKey('users.User', related_name='images', on_delete=models.CASCADE)
     random_from = models.SmallIntegerField(
-        default=0,
+        default=-100,
         help_text='Value from -255 to 255',
         validators=[
             MinValueValidator(-255),
@@ -36,7 +37,7 @@ class Image(models.Model):
         ]
     )
     random_to = models.SmallIntegerField(
-        default=0,
+        default=100,
         help_text='Value from -255 to 255',
         validators=[
             MinValueValidator(-255),
@@ -51,8 +52,13 @@ class Image(models.Model):
     def __str__(self):
         return self.image.name
 
+    def clean(self):
+        if self.random_from > self.random_to:
+            raise ValidationError({'random_from': ['"Random from" should be less than "Random to"']})
+
     def save(self, *args, **kwargs):
         self.create_unique_image()
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def image_preview(self):
@@ -62,10 +68,12 @@ class Image(models.Model):
         return format_html(f'<img src="{self.result_image.url}" width="500" height="500"/>') if self.image else ''
 
     def create_unique_image(self):
-        unifier = ImageUnifier(self.image)
+        unifier = ImageUnifier(image=self.image, random_from=self.random_from, random_to=self.random_to)
         result_image = unifier.create_new_image()
         image_file = BytesIO()
         result_image.save(image_file, 'JPEG')
+        if self.result_image:
+            self.result_image.delete(False)
         self.result_image.save(
             self.image.name,
             File(image_file),

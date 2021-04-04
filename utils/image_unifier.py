@@ -1,16 +1,18 @@
-import PIL
 import random
+
+import PIL
 
 
 class ImageUnifier:
 
     def __init__(self, image=None, random_from=0, random_to=0):
         self.image = image
+        self.random_from = random_from
+        self.random_to = random_to
         self.result_image = None
 
     def get_random_value(self, value):
-        k = -1 if random.randint(0, 1) else 1
-        r = value + (random.randint(50, 100) * k)
+        r = value + random.randint(self.random_from, self.random_to)
         if r < 0:
             return 0
         if r > 255:
