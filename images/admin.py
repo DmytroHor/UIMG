@@ -8,8 +8,10 @@ class ImageAdmin(admin.ModelAdmin):
         'image', 'image_preview', 'result_image', 'result_image_preview',
         'random_from', 'random_to',
     )
-    readonly_fields = ('image_preview', 'result_image', 'result_image_preview', 'owner',)
-    list_filter = ('owner',)
+    readonly_fields = ('image_preview', 'result_image', 'result_image_preview',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(owner=request.user)
 
     def save_model(self, request, obj, form, change):
         if not change:
